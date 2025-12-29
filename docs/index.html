@@ -1,18 +1,22 @@
 <!doctypehtml><html lang="en"><meta charset="UTF-8"><meta name="viewport"content="width=device-width,initial-scale=1"><title>Compound Interest Calculator</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"rel="stylesheet"><link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"><script src="https://cdn.tailwindcss.com"></script><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script><script src="https://unpkg.com/@babel/standalone/babel.min.js"></script><style>body{font-family:system-ui,-apple-system,sans-serif}</style><nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top"><div class="container"><a class="navbar-brand fw-bold"href="https://geoffschoeman.com"><i class="bi bi-globe"></i> geoffschoeman.com</a></div></nav><div class="max-w-4xl mx-auto px-4 py-6"><h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Compound Interest Calculator</h1><div id="root"></div></div><script type="text/babel">const STORAGE_KEY = "compoundInterestCalculatorSettings";
 
-      function loadSavedSettings() {
+    function loadSavedSettings() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-          try { return JSON.parse(saved); } catch (e) { return {}; }
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                return {};
+            }
         }
         return {};
-      }
+    }
 
-      function saveSettings(settings) {
+    function saveSettings(settings) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-      }
+    }
 
-      function CompoundInterestCalculator() {
+    function CompoundInterestCalculator() {
         const saved = loadSavedSettings();
 
         const [principal, setPrincipal] = React.useState(saved.principal ?? "");
@@ -26,32 +30,32 @@
         const [viewMode, setViewMode] = React.useState(saved.viewMode ?? "yearly");
 
         React.useEffect(() => {
-          const settings = {
-            principal, rate, rateFrequency, years, compounding,
-            contribution, contributionFrequency, contributionTiming, viewMode
-          };
-          saveSettings(settings);
+            const settings = {
+                principal, rate, rateFrequency, years, compounding,
+                contribution, contributionFrequency, contributionTiming, viewMode
+            };
+            saveSettings(settings);
         }, [principal, rate, rateFrequency, years, compounding, contribution, contributionFrequency, contributionTiming, viewMode]);
 
         // Moved inside component to avoid ReferenceError
         function formatCurrency(amount) {
-          return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }).format(amount || 0);
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(amount || 0);
         }
 
         function formatPercent(value) {
-          return new Intl.NumberFormat('en-US', {
-            style: 'percent',
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          }).format((value || 0) / 100);
+            return new Intl.NumberFormat('en-US', {
+                style: 'percent',
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+            }).format((value || 0) / 100);
         }
 
-        const freqMap = { daily: 365, weekly: 52, monthly: 12, quarterly: 4, yearly: 1 };
+        const freqMap = {daily: 365, weekly: 52, monthly: 12, quarterly: 4, yearly: 1};
         const rateFreq = freqMap[rateFrequency];
         const compoundFreq = freqMap[compounding];
 
@@ -64,11 +68,11 @@
         let contributionsPerYear = 0;
 
         if (contributionFrequency === "one time") {
-          initialExtra = contribAmount;
+            initialExtra = contribAmount;
         } else if (contributionFrequency === "monthly") {
-          contributionsPerYear = 12;
+            contributionsPerYear = 12;
         } else if (contributionFrequency === "annually") {
-          contributionsPerYear = 1;
+            contributionsPerYear = 1;
         }
 
         const effectivePrincipal = p + initialExtra;
@@ -84,70 +88,79 @@
         let totalContributions = initialExtra;
 
         if (y > 0 && !isNaN(y)) {
-          let yearStartBalance = effectivePrincipal;
+            let yearStartBalance = effectivePrincipal;
 
-          for (let year = 1; year <= y; year++) {
-            yearStartBalance = balance;
-            let yearContributions = 0;
-            let yearInterest = 0;
+            for (let year = 1; year <= y; year++) {
+                yearStartBalance = balance;
+                let yearContributions = 0;
+                let yearInterest = 0;
 
-            for (let month = 1; month <= 12; month++) {
-              const monthStart = balance;
-              let monthContributions = 0;
+                for (let month = 1; month <= 12; month++) {
+                    const monthStart = balance;
+                    let monthContributions = 0;
 
-              // Add contribution based on frequency
-              if (contributionFrequency === "monthly") {
-                monthContributions = contribAmount;
-              } else if (contributionFrequency === "annually") {
-                if ((contributionTiming === "start" && month === 1) ||
-                    (contributionTiming === "end" && month === 12)) {
-                  monthContributions = contribAmount;
+                    // Add contribution based on frequency
+                    if (contributionFrequency === "monthly") {
+                        monthContributions = contribAmount;
+                    } else if (contributionFrequency === "annually") {
+                        if ((contributionTiming === "start" && month === 1) ||
+                            (contributionTiming === "end" && month === 12)) {
+                            monthContributions = contribAmount;
+                        }
+                    }
+
+                    if (contributionTiming === "start") {
+                        balance += monthContributions;
+                    }
+
+                    // Calculate how many full compounding periods occur in this month
+                    const compoundingPeriodsPerMonth = compoundFreq / 12;
+
+// Apply full periods
+                    const fullPeriods = Math.floor(compoundingPeriodsPerMonth);
+                    for (let i = 0; i < fullPeriods; i++) {
+                        balance *= (1 + periodRate);
+                    }
+
+// Apply fractional remaining period if any (more precise)
+                    const fractional = compoundingPeriodsPerMonth - fullPeriods;
+                    if (fractional > 0) {
+                        balance *= Math.pow(1 + periodRate, fractional);
+                    }
+
+                    const monthInterest = balance - monthStart - monthContributions;
+
+                    if (contributionTiming === "end") {
+                        balance += monthContributions;
+                    }
+
+                    yearContributions += monthContributions;
+                    yearInterest += monthInterest;
+                    totalInterest += monthInterest;
+                    totalContributions += monthContributions;
+
+                    monthlyData.push({
+                        monthIndex: (year - 1) * 12 + month,
+                        contributions: monthContributions,
+                        interest: monthInterest,
+                        end: balance,
+                    });
                 }
-              }
 
-              if (contributionTiming === "start") {
-                balance += monthContributions;
-              }
-
-              // Apply compounding for this month
-              const periodsThisMonth = Math.max(1, compoundFreq / 12);
-              for (let i = 0; i < periodsThisMonth; i++) {
-                balance *= (1 + periodRate);
-              }
-
-              const monthInterest = balance - monthStart - monthContributions;
-
-              if (contributionTiming === "end") {
-                balance += monthContributions;
-              }
-
-              yearContributions += monthContributions;
-              yearInterest += monthInterest;
-              totalInterest += monthInterest;
-              totalContributions += monthContributions;
-
-              monthlyData.push({
-                monthIndex: (year - 1) * 12 + month,
-                contributions: monthContributions,
-                interest: monthInterest,
-                end: balance,
-              });
+                yearlyData.push({
+                    year,
+                    contributions: yearContributions,
+                    interest: yearInterest,
+                    end: balance,
+                });
             }
-
-            yearlyData.push({
-              year,
-              contributions: yearContributions,
-              interest: yearInterest,
-              end: balance,
-            });
-          }
         }
 
         const finalBalance = balance;
 
-        const effectiveAnnualRate = annualRate > 0 
-          ? ((Math.pow(1 + periodRate, compoundFreq) - 1) * 100).toFixed(2)
-          : "0.00";
+        const effectiveAnnualRate = annualRate > 0
+            ? ((Math.pow(1 + periodRate, compoundFreq) - 1) * 100).toFixed(2)
+            : "0.00";
         const timeToDouble = annualRate > 0 ? (72 / (annualRate * 100)).toFixed(1) : "N/A";
 
         const interestPercentOfPrincipal = effectivePrincipal > 0 ? (totalInterest / effectivePrincipal) * 100 : 0;
@@ -156,151 +169,170 @@
         const hasOngoingContributions = contributionsPerYear > 0;
 
         return (
-          <div className="space-y-6">
-            {/* Compact Form */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Initial Investment ($)</label>
-                  <input type="number" step="any" value={principal} onChange={e => setPrincipal(e.target.value)}
-                    placeholder="10000" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
+            <div className="space-y-6">
+                {/* Compact Form */}
+                <div className="bg-white rounded-lg shadow p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Initial Investment
+                                ($)</label>
+                            <input type="number" step="any" value={principal}
+                                   onChange={e => setPrincipal(e.target.value)}
+                                   placeholder="10000"
+                                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"/>
+                        </div>
 
-                <div></div>
+                        <div></div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Interest Rate (%)</label>
-                  <input type="number" step="0.01" value={rate} onChange={e => setRate(e.target.value)}
-                    placeholder="7" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Rate Frequency</label>
-                  <select value={rateFrequency} onChange={e => setRateFrequency(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Interest Rate (%)</label>
+                            <input type="number" step="0.01" value={rate} onChange={e => setRate(e.target.value)}
+                                   placeholder="7"
+                                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"/>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Rate Frequency</label>
+                            <select value={rateFrequency} onChange={e => setRateFrequency(e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Time Period (years)</label>
-                  <input type="number" step="any" value={years} onChange={e => setYears(e.target.value)}
-                    placeholder="10" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Compound Frequency</label>
-                  <select value={compounding} onChange={e => setCompounding(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Time Period (years)</label>
+                            <input type="number" step="any" value={years} onChange={e => setYears(e.target.value)}
+                                   placeholder="10"
+                                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"/>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Compound Frequency</label>
+                            <select value={compounding} onChange={e => setCompounding(e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Additional Contribution ($)</label>
-                  <input type="number" step="any" value={contribution} onChange={e => setContribution(e.target.value)}
-                    placeholder="0" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Contribution Frequency</label>
-                  <select value={contributionFrequency} onChange={e => setContributionFrequency(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="one time">One Time</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="annually">Annually</option>
-                  </select>
-                </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Additional Contribution
+                                ($)</label>
+                            <input type="number" step="any" value={contribution}
+                                   onChange={e => setContribution(e.target.value)}
+                                   placeholder="0"
+                                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"/>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Contribution
+                                Frequency</label>
+                            <select value={contributionFrequency}
+                                    onChange={e => setContributionFrequency(e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="one time">One Time</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="annually">Annually</option>
+                            </select>
+                        </div>
 
-                {hasOngoingContributions && (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Contribution Timing</label>
-                    <select value={contributionTiming} onChange={e => setContributionTiming(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                      <option value="start">Beginning of period</option>
-                      <option value="end">End of period</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-blue-600 text-white rounded-lg p-4 text-center">
-                <p className="text-blue-100 text-xs">Final Balance</p>
-                <p className="text-2xl font-bold mt-1">{formatCurrency(finalBalance)}</p>
-              </div>
-              <div className="bg-green-600 text-white rounded-lg p-4 text-center">
-                <p className="text-green-100 text-xs">Total Interest</p>
-                <p className="text-2xl font-bold mt-1">{formatCurrency(totalInterest)}</p>
-              </div>
-              <div className="bg-purple-600 text-white rounded-lg p-4 text-center">
-                <p className="text-purple-100 text-xs">Total Invested</p>
-                <p className="text-2xl font-bold mt-1">{formatCurrency(totalContributions)}</p>
-              </div>
-            </div>
-
-            {/* Extra Stats */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                <div><p className="text-gray-600 text-xs">Effective Rate</p><p className="text-lg font-semibold">{effectiveAnnualRate}%</p></div>
-                <div><p className="text-gray-600 text-xs">Nominal Rate</p><p className="text-lg font-semibold">{(annualRate * 100).toFixed(2)}%</p></div>
-                <div><p className="text-gray-600 text-xs">Time to Double</p><p className="text-lg font-semibold">{timeToDouble} yrs</p></div>
-                <div><p className="text-gray-600 text-xs">Interest % of Principal</p><p className="text-lg font-semibold">{formatPercent(interestPercentOfPrincipal)}</p></div>
-              </div>
-            </div>
-
-            {/* Breakdown Table */}
-            {(y > 0 || effectivePrincipal > 0) && displayData.length > 0 && (
-              <div className="bg-white rounded-lg shadow overflow-x-auto">
-                <div className="p-4 border-b flex justify-between items-center">
-                  <h2 className="text-lg font-bold">{viewMode === "yearly" ? "Yearly" : "Monthly"} Breakdown</h2>
-                  <div className="flex bg-gray-200 rounded-md p-0.5">
-                    <button onClick={() => setViewMode("yearly")} className={`px-3 py-1 text-sm rounded font-medium ${viewMode === "yearly" ? "bg-white shadow" : "text-gray-600"}`}>Yearly</button>
-                    <button onClick={() => setViewMode("monthly")} className={`px-3 py-1 text-sm rounded font-medium ${viewMode === "monthly" ? "bg-white shadow" : "text-gray-600"}`}>Monthly</button>
-                  </div>
-                </div>
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="py-2 px-3 font-medium">{viewMode === "yearly" ? "Year" : "Month #"}</th>
-                      {hasOngoingContributions && <th className="py-2 px-3 font-medium">Contributions</th>}
-                      <th className="py-2 px-3 font-medium">Interest Earned</th>
-                      <th className="py-2 px-3 font-medium">Ending Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    <tr className="bg-gray-50">
-                      <td className="py-2 px-3 font-medium">Start</td>
-                      {hasOngoingContributions && <td className="py-2 px-3">-</td>}
-                      <td className="py-2 px-3">-</td>
-                      <td className="py-2 px-3 font-semibold">{formatCurrency(effectivePrincipal)}</td>
-                    </tr>
-                    {displayData.map((row, i) => (
-                      <tr key={i}>
-                        <td className="py-2 px-3 font-medium">
-                          {viewMode === "yearly" ? row.year : row.monthIndex}
-                        </td>
                         {hasOngoingContributions && (
-                          <td className="py-2 px-3">{formatCurrency(row.contributions)}</td>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Contribution
+                                    Timing</label>
+                                <select value={contributionTiming} onChange={e => setContributionTiming(e.target.value)}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <option value="start">Beginning of period</option>
+                                    <option value="end">End of period</option>
+                                </select>
+                            </div>
                         )}
-                        <td className="py-2 px-3 text-green-600 font-medium">+{formatCurrency(row.interest)}</td>
-                        <td className="py-2 px-3 font-semibold">{formatCurrency(row.end)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        );
-      }
+                    </div>
+                </div>
 
-      const root = ReactDOM.createRoot(document.getElementById("root"));
-      root.render(<CompoundInterestCalculator />);</script><footer class="bg-dark text-white py-3 mt-8"><div class="container text-center text-sm"><p class="mb-0">© 2012 - 2025 geoffschoeman.com</div></footer><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-blue-600 text-white rounded-lg p-4 text-center">
+                        <p className="text-blue-100 text-xs">Final Balance</p>
+                        <p className="text-2xl font-bold mt-1">{formatCurrency(finalBalance)}</p>
+                    </div>
+                    <div className="bg-green-600 text-white rounded-lg p-4 text-center">
+                        <p className="text-green-100 text-xs">Total Interest</p>
+                        <p className="text-2xl font-bold mt-1">{formatCurrency(totalInterest)}</p>
+                    </div>
+                    <div className="bg-purple-600 text-white rounded-lg p-4 text-center">
+                        <p className="text-purple-100 text-xs">Total Invested</p>
+                        <p className="text-2xl font-bold mt-1">{formatCurrency(totalContributions)}</p>
+                    </div>
+                </div>
+
+                {/* Extra Stats */}
+                <div className="bg-white rounded-lg shadow p-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                        <div><p className="text-gray-600 text-xs">Effective Rate</p><p
+                            className="text-lg font-semibold">{effectiveAnnualRate}%</p></div>
+                        <div><p className="text-gray-600 text-xs">Nominal Rate</p><p
+                            className="text-lg font-semibold">{(annualRate * 100).toFixed(2)}%</p></div>
+                        <div><p className="text-gray-600 text-xs">Time to Double</p><p
+                            className="text-lg font-semibold">{timeToDouble} yrs</p></div>
+                        <div><p className="text-gray-600 text-xs">Interest % of Principal</p><p
+                            className="text-lg font-semibold">{formatPercent(interestPercentOfPrincipal)}</p></div>
+                    </div>
+                </div>
+
+                {/* Breakdown Table */}
+                {(y > 0 || effectivePrincipal > 0) && displayData.length > 0 && (
+                    <div className="bg-white rounded-lg shadow overflow-x-auto">
+                        <div className="p-4 border-b flex justify-between items-center">
+                            <h2 className="text-lg font-bold">{viewMode === "yearly" ? "Yearly" : "Monthly"} Breakdown</h2>
+                            <div className="flex bg-gray-200 rounded-md p-0.5">
+                                <button onClick={() => setViewMode("yearly")}
+                                        className={`px-3 py-1 text-sm rounded font-medium ${viewMode === "yearly" ? "bg-white shadow" : "text-gray-600"}`}>Yearly
+                                </button>
+                                <button onClick={() => setViewMode("monthly")}
+                                        className={`px-3 py-1 text-sm rounded font-medium ${viewMode === "monthly" ? "bg-white shadow" : "text-gray-600"}`}>Monthly
+                                </button>
+                            </div>
+                        </div>
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-gray-50">
+                            <tr>
+                                <th className="py-2 px-3 font-medium">{viewMode === "yearly" ? "Year" : "Month #"}</th>
+                                {hasOngoingContributions && <th className="py-2 px-3 font-medium">Contributions</th>}
+                                <th className="py-2 px-3 font-medium">Interest Earned</th>
+                                <th className="py-2 px-3 font-medium">Ending Balance</th>
+                            </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                            <tr className="bg-gray-50">
+                                <td className="py-2 px-3 font-medium">Start</td>
+                                {hasOngoingContributions && <td className="py-2 px-3">-</td>}
+                                <td className="py-2 px-3">-</td>
+                                <td className="py-2 px-3 font-semibold">{formatCurrency(effectivePrincipal)}</td>
+                            </tr>
+                            {displayData.map((row, i) => (
+                                <tr key={i}>
+                                    <td className="py-2 px-3 font-medium">
+                                        {viewMode === "yearly" ? row.year : row.monthIndex}
+                                    </td>
+                                    {hasOngoingContributions && (
+                                        <td className="py-2 px-3">{formatCurrency(row.contributions)}</td>
+                                    )}
+                                    <td className="py-2 px-3 text-green-600 font-medium">+{formatCurrency(row.interest)}</td>
+                                    <td className="py-2 px-3 font-semibold">{formatCurrency(row.end)}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<CompoundInterestCalculator/>);</script><footer class="bg-dark text-white py-3 mt-8"><div class="container text-center text-sm"><p class="mb-0">© 2012 - 2025 geoffschoeman.com</div></footer><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
